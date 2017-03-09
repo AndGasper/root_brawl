@@ -30,7 +30,7 @@ function RootBrawl(gameAreaElement){
 	}
 	this.createChatHandler = function(){
 		this.chatHandler = new Chat(this.sendMessage.bind(this),this.receiveMessage.bind(this));
-		this.chatHandler.initialize('#communicationDisplay','#outboundMessageInput','#sendMessageButton');
+		this.chatHandler.initialize('#communicationDisplay','#outboundMessageInput','#sendMessageButton','#userName');
 	}
 	this.handleChat
 	this.attachClickHandlers = function(){
@@ -95,10 +95,13 @@ function Chat(sendHandler, receiveHandler){
 	this.outputElement = null;
 	this.inputElement = null;
 	this.sendElement = null;
-	this.initialize = function(output,input,send){
+	this.nameElement = null;
+	this.chatterName = 'Some Dumbass' + Math.floor(Math.random()*1000000);
+	this.initialize = function(output,input,send,name){
 		this.outputElement = $(output);
 		this.inputElement = $(input);
 		this.sendElement = $(send);
+		this.nameElement = $(name);
 		this.attachHandlers();
 	}
 	this.attachHandlers = function(){
@@ -117,9 +120,16 @@ function Chat(sendHandler, receiveHandler){
 		this.inputElement.val('');
 	}
 	this.sendMessage = function(){
+		if(this.nameElement.val() !== ''){
+			this.chatterName = this.nameElement.val();
+			this.nameElement.remove();
+		}
 		var myMessage = this.inputElement.val();
-		this.parentSendHandler(myMessage);
-		this.outputElement.text(this.outputElement.text() + "\n" + myMessage);
+		if(myMessage===''){
+			return;
+		}
+		this.parentSendHandler(this.chatterName + ' : ' + myMessage);
+		this.outputElement.text(this.outputElement.text() + "\n" + this.chatterName + " : " + myMessage);
 		this.scrollToBottom();
 		this.clearInputElement();
 	}
