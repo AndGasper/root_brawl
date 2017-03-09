@@ -1,0 +1,7 @@
+var firebaseConfig = {
+                    apiKey: "apiKey",
+                    authDomain: "authDomain",
+                    databaseURL: "genericDB",
+                    storageBucket: "bucket",
+                    messagingSenderId: "senderID"
+            };
