@@ -2,5 +2,6 @@
 	width: 200px;
 }
 #communicationDisplay{
-	height: 10vh;
+	height: 20vh;
+	font-size: 8px;
 }

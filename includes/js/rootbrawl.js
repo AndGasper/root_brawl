@@ -113,11 +113,15 @@ function Chat(sendHandler, receiveHandler){
 	this.scrollToBottom = function(){
 		this.outputElement.scrollTop(this.outputElement[0].scrollHeight);
 	}
+	this.clearInputElement = function(){
+		this.inputElement.val('');
+	}
 	this.sendMessage = function(){
 		var myMessage = this.inputElement.val();
 		this.parentSendHandler(myMessage);
 		this.outputElement.text(this.outputElement.text() + "\n" + myMessage);
 		this.scrollToBottom();
+		this.clearInputElement();
 	}
 	this.receiveMessage = function(messages){
 		this.outputElement.text(messages.join("\n"));
