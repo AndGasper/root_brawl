@@ -1,10 +1,11 @@
-
+	
 function RootBrawl(gameAreaElement){
 	console.log('rootbrawl constructor loaded');
 	this.gameArea = $(gameAreaElement);
 	this.gameID = null;
 	this.model = null;
 	this.chatHandler = null;
+	this.player = null;
 	this.gameState = {
 		messages: []
 	};
@@ -21,9 +22,13 @@ function RootBrawl(gameAreaElement){
 	}
 	
 	this.initialize = function(){
+		console.log(window.performance.now());
 		this.createInitialGameID();
+		console.log(window.performance.now());
+
 		this.attachClickHandlers();
 		this.createChatHandler();
+		this.createPlayer();
 	}
 	this.updateRemoteGameState = function(){
 		this.model.saveState(this.gameState);
@@ -75,8 +80,16 @@ function RootBrawl(gameAreaElement){
 		}
 		return (Math.floor(Math.random()*(max-min))+min);
 	}
-	this.createPlayers = function(){
-
+	this.createPlayer = function(){
+		var player = new Player();
+		var playerDomElement = player.createInterface(this.playerCreated.bind(this));
+		this.player = player;
+	}
+	this.playerCreated = function(playerDomElement){
+		this.gameArea.append(playerDomElement);
+		this.player.addCards();
+		this.player.addCards();
+		this.player.addCards();
 	}
 	this.gameStateChangeHandler = function(data){
 		//console.log('game state changed',data);
@@ -87,6 +100,74 @@ function RootBrawl(gameAreaElement){
 		this.gameState = data;
 		this.chatHandler.receiveMessage(data.messages);
 	}
+}
+
+
+function Player(){
+	this.name = null;
+	this.id = 'player1';
+	this.local = null;
+	this.cards = {
+		deck: [],
+		hand: [],
+		activeArea: [],
+		graveyard: []
+	};
+	this.domElement = null;
+	this.stats = {
+		hitpoints : 30,
+		manaTotal : 0,
+		manaMax : 10,
+		manaCurrent : 0,
+		manaGainPerTurn : 1
+	}
+	this.addCards = function(){
+		var cardDomElement = this.createCards(this.cards.activeArea);
+		this.domElement.find('.playerActiveArea').append(cardDomElement);
+	}
+	this.createCards = function(destination){
+		var card = new Card(this);
+		var cardElement = card.createElement();
+		destination.push(card);
+		return cardElement;
+	}
+	this.createInterface = function(creationCallback){
+		//this code 1
+		var _this = this;
+		$.ajax({
+			url: 'includes/templates/playerView.html',
+			dataType: 'text',
+			method: 'get',
+			success: function(data){
+				//this code 3
+				console.log(data);
+				var container = $("<div>",{
+					id: _this.id
+				});
+				container.append(data);
+				_this.domElement = container;
+				creationCallback(_this.domElement);
+			}
+		});
+		//this code 2
+
+	}
+}
+
+function Card(parentObject){
+	this.image = 'images/IMG_6744.jpg';
+	this.owner = parentObject;
+	this.domElement = null;
+	this.createElement = function(){
+		this.domElement = $("<div>",{
+			class: 'rootBrawlCard',
+		}).css('background-image','url('+this.image+')');
+		return this.domElement;
+	}
+}
+
+function Deck(){
+
 }
 
 
