@@ -87,9 +87,9 @@ function RootBrawl(gameAreaElement){
 	}
 	this.playerCreated = function(playerDomElement){
 		this.gameArea.append(playerDomElement);
-		this.player.addCards();
-		this.player.addCards();
-		this.player.addCards();
+		this.player.createDeck(deckStats);
+		//TODO: get deckStats from a parameter or load through a property
+
 	}
 	this.gameStateChangeHandler = function(data){
 		//console.log('game state changed',data);
@@ -107,8 +107,14 @@ function Player(){
 	this.name = null;
 	this.id = 'player1';
 	this.local = null;
-	this.cards = {
-		deck: [],
+	this.cardLibrary = null;
+	this.playerAreas = {
+		deck: null,
+		hand: null,
+		active: null
+	}
+	this.cardHolders = {
+		deck: null,
 		hand: [],
 		activeArea: [],
 		graveyard: []
@@ -125,11 +131,23 @@ function Player(){
 		var cardDomElement = this.createCards(this.cards.activeArea);
 		this.domElement.find('.playerActiveArea').append(cardDomElement);
 	}
+	this.createDeck = function(playerCardLibrary){
+		this.cardLibrary = playerCardLibrary;
+		this.cardHolders.deck = new Deck();
+		this.cardHolders.deck.load(this.cardLibrary);
+		var deckDomElement = this.cardHolders.deck.createElement();
+
+	}
 	this.createCards = function(destination){
 		var card = new Card(this);
 		var cardElement = card.createElement();
 		destination.push(card);
 		return cardElement;
+	}
+	this.getDomReferences = function(){
+		this.playerAreas.deck = this.domElement.find('.playerDeck');
+		this.playerAreas.hand = this.domElement.find('.playerHand');
+		this.playerAreas.active = this.domElement.find('.playerActiveArea');
 	}
 	this.createInterface = function(creationCallback){
 		//this code 1
@@ -146,6 +164,7 @@ function Player(){
 				});
 				container.append(data);
 				_this.domElement = container;
+				_this.getDomReferences();
 				creationCallback(_this.domElement);
 			}
 		});
@@ -155,21 +174,173 @@ function Player(){
 }
 
 function Card(parentObject){
-	this.image = 'images/IMG_6744.jpg';
+	this.image = null;
 	this.owner = parentObject;
+	this.name = '';
+	this.baseID = null;
+	this.baseSeries = null;
 	this.domElement = null;
+	this.attackValue = null;
+	this.defenseValue = null;
+	this.handleAttack = null
+	this.handleDefend = null;
+	this.handleCreate = null;
+	this.handleDeath = null;
+	this.init = function(options){
+		this.attackValue = options.attack;
+		this.defenseValue = options.defense;
+		this.name = options.name;
+		this.image = options.image;
+		this.baseID = options.id;
+		this.baseSeries = options.series;
+		this.handleAttack = options.onAttack;
+		this.handleDefend = options.onDefend;
+		this.handleCreate = options.onCreated;
+		this.handleDeath = options.onDeath;
+	}
 	this.createElement = function(){
 		this.domElement = $("<div>",{
 			class: 'rootBrawlCard',
 		}).css('background-image','url('+this.image+')');
 		return this.domElement;
 	}
+	this.create = function(){
+
+	}
+	this.die = function(){
+
+	}
+	this.attack = function(){
+
+	}
+	this.defend = function(){
+
+	}
 }
 
 function Deck(){
-
+	this.cardStack = [];
+	this.domElement = null;
+	this.createElement = function(){
+		var deck = $("<div>",{
+			class: 'deck'
+		});
+		return deck;
+	}
+	this.load = function(cardOptions){
+		for(var i=0; i<cardOptions.length; i++){
+			var card = new Card(this);
+			this.cardStack.push(card);
+			card.init(cardOptions[i]);
+		}
+		debugger;
+	}
+	
+}
+//this is a template for a card
+var baseCardObject = {
+		image: '',
+		name: '',
+		id: 0,
+		series: 0,
+		attack: 0,
+		defense: 0,
+		onAttack: function(){
+			console.log('I am attacking');
+		},
+		onDefend: function(){
+			console.log('I am defending');
+		},
+		onCreated: function(){
+			console.log('I am created')
+		},
+		onDeath: function(){
+			console.log('I am dead');
+		}
 }
 
+var deckStats = [
+	{
+		id: 0,
+		series: 0,
+		image: 'images/IMG_6744.jpg',
+		name: 'Andres the distracted',
+		attack: 1,
+		defense: 5,
+		onAttack: function(){
+			console.log('I am attacking');
+		},
+		onDefend: function(){
+			console.log('I am defending');
+		},
+		onCreated: function(){
+			console.log('I am created')
+		},
+		onDeath: function(){
+			console.log('I am dead');
+		}
+	},
+	{
+		id: 1,
+		series: 0,
+		image: 'images/A81U9826.jpg',
+		name: 'Donald the Voluntolding',
+		attack: 5,
+		defense: 1,
+		onAttack: function(){
+			console.log('I am attacking');
+		},
+		onDefend: function(){
+			console.log('I am defending');
+		},
+		onCreated: function(){
+			console.log('I am created')
+		},
+		onDeath: function(){
+			console.log('I am dead');
+		}
+	},
+	{
+		id: 2,
+		series: 0,
+		image: 'images/A81U9828.jpg',
+		name: 'Ryan the tired',
+		attack: 0,
+		defense: 10,
+		onAttack: function(){
+			console.log('I am attacking');
+		},
+		onDefend: function(){
+			console.log('I am defending');
+		},
+		onCreated: function(){
+			console.log('I am created')
+		},
+		onDeath: function(){
+			console.log('I am dead');
+		}
+	},
+	{
+		id: 3,
+		series: 0,
+		image: 'images/A81U9827.jpg',
+		name: 'Miranda says "wattah!"',
+		attack: 5,
+		defense: 1,
+		onAttack: function(){
+			console.log('I am attacking');
+		},
+		onDefend: function(){
+			console.log('I am defending');
+		},
+		onCreated: function(){
+			console.log('I am created')
+		},
+		onDeath: function(){
+			console.log('I am dead');
+		}
+	}
+];
 
 
 

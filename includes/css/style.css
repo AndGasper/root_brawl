@@ -40,6 +40,8 @@
     height: 80%;
     background-size: contain;
     background-repeat: no-repeat;
+    width: 10%;
+    display: inline-block;
 }
 #gameArea > div{
 	height: 100%;
