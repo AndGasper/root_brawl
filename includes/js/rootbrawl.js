@@ -88,6 +88,7 @@ function RootBrawl(gameAreaElement){
 	this.playerCreated = function(playerDomElement){
 		this.gameArea.append(playerDomElement);
 		this.player.createDeck(deckStats);
+		this.player.createHand();
 		//TODO: get deckStats from a parameter or load through a property
 
 	}
@@ -115,7 +116,7 @@ function Player(){
 	}
 	this.cardHolders = {
 		deck: null,
-		hand: [],
+		hand: null,
 		activeArea: [],
 		graveyard: []
 	};
@@ -133,10 +134,16 @@ function Player(){
 	}
 	this.createDeck = function(playerCardLibrary){
 		this.cardLibrary = playerCardLibrary;
-		this.cardHolders.deck = new Deck();
+		this.cardHolders.deck = new Deck('player deck');
 		this.cardHolders.deck.load(this.cardLibrary);
 		var deckDomElement = this.cardHolders.deck.createElement();
 		this.playerAreas.deck.append(deckDomElement);
+	}
+	this.createHand = function(){
+		this.cardHolders.hand = new Deck('player hand');
+		var handDeckDomElement = this.cardHolders.hand.createElement();
+		this.playerAreas.hand.append(handDeckDomElement);
+		this.cardHolders.hand.draggable = true;
 	}
 	this.createCards = function(destination){
 		var card = new Card(this);
@@ -158,7 +165,6 @@ function Player(){
 			method: 'get',
 			success: function(data){
 				//this code 3
-				console.log(data);
 				var container = $("<div>",{
 					id: _this.id
 				});
@@ -203,6 +209,37 @@ function Card(parentObject){
 	Object.defineProperties(this,{
 		
 	});
+	this.makeDraggable = function(){
+		this.domElement.draggable();
+	}
+	this.moveCard = function(destinationDeck){
+		var offset = this.domElement.offset();
+		var currentHeight = this.domElement.height();
+		var currentWidth = this.domElement.width();
+		this.domElement.css({
+			height: currentHeight+'px',
+			width: currentWidth + 'px'
+		});
+		var animationCard = this.domElement.clone();
+		//TODO: fix this animation
+		animationCard.css({
+			'z-index':100,
+			position: 'fixed',
+			top: offset.top + 'px',
+			left: offset.left + 'px'
+		});
+		destinationDeck.domElement.append(animationCard);
+		destinationDeck.domElement.append(this.domElement);
+		//this.domElement.css('opacity',0);
+		var destinationOffset = this.domElement.offset();
+		animationCard.animate({
+			left: destinationOffset.left +'px',
+			top: destinationOffset.top +'px'
+		},1000, function(){
+			$(this).remove()
+		})
+
+	}
 	this.createElement = function(){
 		this.domElement = $("<div>",{
 			class: 'rootBrawlCard',
@@ -230,16 +267,38 @@ function Card(parentObject){
 	}
 }
 
-function Deck(){
+function Deck(name){
+	this.name = name;
 	this.cardStack = [];
 	this.domElement = null;
+	this.draggableValue = false;
+	Object.defineProperties(this,{
+		draggable: {
+			get: function(){
+				return this.draggableValue;
+			},
+			set: function(newValue){
+				if(newValue){
+					this.instantiateDrag();
+				}
+				this.draggableValue = newValue;
+			}
+		}
+	});
+	this.instantiateDrag = function(){
+		console.log('here',this);
+		for(var i=0; i<this.cardStack.length; i++){
+			this.cardStack[i].makeDraggable();
+		}
+	}
 	this.createElement = function(){
 		var deck = $("<div>",{
 			class: 'deck'
 		});
-		debugger;
 		this.domElement = deck;
-		this.domElement.append(this.cardStack[0].domElement);
+		if(this.cardStack.length>0){
+			this.showCard(this.cardStack[this.cardStack.length-1]);
+		}
 		return deck;
 	}
 	this.load = function(cardOptions){
@@ -250,6 +309,31 @@ function Deck(){
 			card.createElement();
 		}
 		
+	}
+	this.showCard = function(cardToShow){
+		this.domElement.append(cardToShow.domElement);
+	}
+	this.getTopCard = function(){
+		var cardToGet = this.cardStack.pop();
+		this.showCard(this.cardStack[this.cardStack.length-1]);
+		return cardToGet;
+	}
+	this.dealCard = function(receivingDeck,card){
+		if(card === undefined){
+			card = this.getTopCard();
+		}
+		this.animateDeal(receivingDeck,card);
+		if(card !== undefined){
+			receivingDeck.receiveCard(this, card);
+		} else {
+			console.warn('no more cards available');
+		}
+	}
+	this.animateDeal = function(dealingDeck, card){
+		card.moveCard(dealingDeck);
+	}
+	this.receiveCard = function(dealingDeck, card){
+		this.cardStack.push(card);
 	}
 	
 }
