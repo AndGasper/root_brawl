@@ -175,6 +175,7 @@ function Player(){
 
 function Card(parentObject){
 	this.image = null;
+	this.backfaceImageValue = 'images/cardBack.png';
 	this.owner = parentObject;
 	this.name = '';
 	this.baseID = null;
@@ -198,6 +199,9 @@ function Card(parentObject){
 		this.handleCreate = options.onCreated;
 		this.handleDeath = options.onDeath;
 	}
+	Object.defineProperties(this,{
+		
+	});
 	this.createElement = function(){
 		this.domElement = $("<div>",{
 			class: 'rootBrawlCard',
