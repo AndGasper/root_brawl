@@ -26,6 +26,7 @@
 .playerDeck {
     background-color: lightgreen;
     width: 20%;
+    height: 100%;
     position: absolute;
     right: 0px;
 }
@@ -38,11 +39,37 @@
 }
 .rootBrawlCard {
     height: 80%;
+
+    width: 100%;
+    display: inline-block;
+    position: relative;
+}
+.rootBrawlCard > .front, .rootBrawlCard > .back{
+    position: absolute;
     background-size: contain;
     background-repeat: no-repeat;
-    width: 10%;
-    display: inline-block;
+    background-position: center;
+    left: 0px;
+    top: 0px;
+    height: 100%;
+    width: 100%;
 }
 #gameArea > div{
 	height: 100%;
 }
+.deck{
+    height: 40%;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

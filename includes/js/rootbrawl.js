@@ -136,7 +136,7 @@ function Player(){
 		this.cardHolders.deck = new Deck();
 		this.cardHolders.deck.load(this.cardLibrary);
 		var deckDomElement = this.cardHolders.deck.createElement();
-
+		this.playerAreas.deck.append(deckDomElement);
 	}
 	this.createCards = function(destination){
 		var card = new Card(this);
@@ -178,6 +178,7 @@ function Card(parentObject){
 	this.backfaceImageValue = 'images/cardBack.png';
 	this.owner = parentObject;
 	this.name = '';
+	this.facing = 'back';
 	this.baseID = null;
 	this.baseSeries = null;
 	this.domElement = null;
@@ -205,7 +206,14 @@ function Card(parentObject){
 	this.createElement = function(){
 		this.domElement = $("<div>",{
 			class: 'rootBrawlCard',
+		});
+		var front = $("<div>",{
+			class: 'front'
 		}).css('background-image','url('+this.image+')');
+		var back = $("<div>",{
+			class: 'back'
+		}).css('background-image','url('+this.backfaceImageValue+')');
+		this.domElement.append(front,back);
 		return this.domElement;
 	}
 	this.create = function(){
@@ -229,6 +237,9 @@ function Deck(){
 		var deck = $("<div>",{
 			class: 'deck'
 		});
+		debugger;
+		this.domElement = deck;
+		this.domElement.append(this.cardStack[0].domElement);
 		return deck;
 	}
 	this.load = function(cardOptions){
@@ -236,8 +247,9 @@ function Deck(){
 			var card = new Card(this);
 			this.cardStack.push(card);
 			card.init(cardOptions[i]);
+			card.createElement();
 		}
-		debugger;
+		
 	}
 	
 }
