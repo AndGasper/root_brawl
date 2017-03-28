@@ -1,3 +1,48 @@
 #gameID{
 	width: 200px;
 }
+#communicationDisplay{
+	height: 20vh;
+	font-size: 8px;
+}
+
+#gameArea{
+	height: 75vh;
+}
+.playerArea {
+    background-color: #dbb46f;
+    width: 100%;
+    height: 50%;
+    position: relative;
+}
+.playerHand {
+    background-color: pink;
+    width: 50%;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 20%;
+}
+.playerDeck {
+    background-color: lightgreen;
+    width: 20%;
+    position: absolute;
+    right: 0px;
+}
+.playerActiveArea {
+    background-color: lightblue;
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+    height: 60%;
+}
+.rootBrawlCard {
+    height: 80%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    width: 10%;
+    display: inline-block;
+}
+#gameArea > div{
+	height: 100%;
+}

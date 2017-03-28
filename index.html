@@ -5,8 +5,10 @@
 	<link rel="stylesheet" href="includes/css/style.css">
 	<script src="includes/js/jquery-3.1.0.min.js"></script>
 	<script src="includes/js/jquery-ui.min.js"></script>
+	<script src="includes/js/firebaseDBConfig.js"></script>
 	<script src="includes/js/firebaseDB.js"></script>
 	<script src="includes/js/main.js"></script>
+	<script src="includes/js/chatHandler.js"></script>
 	<script src="includes/js/rootBrawl.js"></script>
 </head>
 <body>
@@ -15,5 +17,10 @@
 		<button id="submitGameID">Connect</button>
 	</div>
 	<div id="gameArea"></div>
+	<div id="chatBox">
+		<textarea id="communicationDisplay"></textarea>
+		<input id="userName" placeholder="user name"><input id="outboundMessageInput" placeholder="type your message here">
+		<button id="sendMessageButton">SEND</button>
+	</div>
 </body>
 </html>
