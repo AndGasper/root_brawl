@@ -88,6 +88,7 @@ function RootBrawl(gameAreaElement){
 	this.playerCreated = function(playerDomElement){
 		this.gameArea.append(playerDomElement);
 		this.player.createDeck(deckStats);
+		this.player.createHand();
 		//TODO: get deckStats from a parameter or load through a property
 
 	}
@@ -115,7 +116,7 @@ function Player(){
 	}
 	this.cardHolders = {
 		deck: null,
-		hand: [],
+		hand: null,
 		activeArea: [],
 		graveyard: []
 	};
@@ -133,10 +134,18 @@ function Player(){
 	}
 	this.createDeck = function(playerCardLibrary){
 		this.cardLibrary = playerCardLibrary;
-		this.cardHolders.deck = new Deck();
+		this.cardHolders.deck = new Deck('player deck');
 		this.cardHolders.deck.load(this.cardLibrary);
 		var deckDomElement = this.cardHolders.deck.createElement();
-
+		this.playerAreas.deck.append(deckDomElement);
+		this.cardHolders.deck.revealedByDefault = false;
+	}
+	this.createHand = function(){
+		this.cardHolders.hand = new Deck('player hand');
+		var handDeckDomElement = this.cardHolders.hand.createElement();
+		this.playerAreas.hand.append(handDeckDomElement);
+		this.cardHolders.hand.draggable = true;
+		this.cardHolders.hand.revealedByDefault = true;
 	}
 	this.createCards = function(destination){
 		var card = new Card(this);
@@ -158,7 +167,6 @@ function Player(){
 			method: 'get',
 			success: function(data){
 				//this code 3
-				console.log(data);
 				var container = $("<div>",{
 					id: _this.id
 				});
@@ -166,10 +174,27 @@ function Player(){
 				_this.domElement = container;
 				_this.getDomReferences();
 				creationCallback(_this.domElement);
+				//TODO: this is a temporary button for testing
+				_this.prepInterface();
 			}
 		});
 		//this code 2
 
+	}
+	this.prepInterface = function(){
+		$("#dealCards").click(()=>{
+			this.cardHolders.deck.dealCard(this.cardHolders.hand);
+		});
+		this.playerAreas.active.droppable({
+			drop: (event, references)=>{
+				debugger
+				var index = references.draggable.attr('index');
+				var card = this.cardHolders.hand.cardStack[index];
+				card.becomeActive();
+				console.log(this);
+			},
+			accept: '.rootBrawlCard'
+		})
 	}
 }
 
@@ -178,6 +203,7 @@ function Card(parentObject){
 	this.backfaceImageValue = 'images/cardBack.png';
 	this.owner = parentObject;
 	this.name = '';
+	this.facing = 'back';
 	this.baseID = null;
 	this.baseSeries = null;
 	this.domElement = null;
@@ -187,6 +213,9 @@ function Card(parentObject){
 	this.handleDefend = null;
 	this.handleCreate = null;
 	this.handleDeath = null;
+	this.domFront = null;
+	this.domBack = null;
+	this.parent = parentObject;
 	this.init = function(options){
 		this.attackValue = options.attack;
 		this.defenseValue = options.defense;
@@ -202,10 +231,72 @@ function Card(parentObject){
 	Object.defineProperties(this,{
 		
 	});
+	this.becomeActive = function(){
+		console.log('ROAAAAAARR ahem... errr... I\'m alive');
+		this.domElement.css('transform','rotateZ(45deg)');
+	}
+	this.makeDraggable = function(){
+		var _this = this;
+		this.domElement.draggable({
+			revert: 'invalid',
+			start: (p1, reference)=>{
+				
+				//p2.position.theObject = _this;
+				reference.helper.attr('index',this.parent.cardStack.indexOf(this));
+
+				//debugger;
+			},
+			stop: (p1, reference)=>{
+				console.log(this.parent);
+			}
+		});
+	}
+	this.moveCard = function(destinationDeck){
+		var offset = this.domElement.offset();
+		var currentHeight = this.domElement.height();
+		var currentWidth = this.domElement.width();
+		this.domElement.css({
+			height: currentHeight+'px',
+			width: currentWidth + 'px'
+		});
+		var animationCard = this.domElement.clone();
+		//TODO: fix this animation
+		animationCard.css({
+			'z-index':100,
+			position: 'fixed',
+			top: offset.top + 'px',
+			left: offset.left + 'px'
+		});
+		destinationDeck.domElement.append(animationCard);
+		destinationDeck.domElement.append(this.domElement);
+		//this.domElement.css('opacity',0);
+		var destinationOffset = this.domElement.offset();
+		animationCard.animate({
+			left: destinationOffset.left +'px',
+			top: destinationOffset.top +'px'
+		},1000, function(){
+			$(this).remove()
+		})
+
+	}
+	this.setVisibilityState = function(newState){
+		if(newState==='show'){
+			this.domBack.hide();
+		} else {
+			this.domBack.show();
+		}
+	}
 	this.createElement = function(){
 		this.domElement = $("<div>",{
 			class: 'rootBrawlCard',
+		});
+		this.domFront = $("<div>",{
+			class: 'front'
 		}).css('background-image','url('+this.image+')');
+		this.domBack = $("<div>",{
+			class: 'back'
+		}).css('background-image','url('+this.backfaceImageValue+')');
+		this.domElement.append(this.domFront,this.domBack);
 		return this.domElement;
 	}
 	this.create = function(){
@@ -222,13 +313,64 @@ function Card(parentObject){
 	}
 }
 
-function Deck(){
+function Deck(name){
+	this.name = name;
 	this.cardStack = [];
 	this.domElement = null;
+	this.draggableValue = false;
+	this.revealedByDefaultValue = true;
+	Object.defineProperties(this,{
+		revealedByDefault : {
+			get: function(){
+				return this.revealedByDefaultValue;
+			},
+			set: function(newValue){
+				this.revealedByDefaultValue = newValue;
+				if(this.revealedByDefaultValue){
+					this.revealAllCards();
+				} else {
+					this.hideAllCards();
+				}
+				console.log('update the cards now');
+			}
+		},
+		draggable: {
+			get: function(){
+				return this.draggableValue;
+			},
+			set: function(newValue){
+				if(newValue){
+					this.instantiateDrag();
+				}
+				this.draggableValue = newValue;
+			}
+		}
+	});
+	this.revealAllCards = function(){
+		this.setCardState('show');
+	}
+	this.hideAllCards = function(){
+		this.setCardState('hide');
+	}
+	this.setCardState = function(state){
+		this.cardStack.map((card)=>{
+			card.setVisibilityState(state);
+		});
+	}
+	this.instantiateDrag = function(){
+		console.log('here',this);
+		for(var i=0; i<this.cardStack.length; i++){
+			this.cardStack[i].makeDraggable();
+		}
+	}
 	this.createElement = function(){
 		var deck = $("<div>",{
 			class: 'deck'
 		});
+		this.domElement = deck;
+		if(this.cardStack.length>0){
+			this.showCard(this.cardStack[this.cardStack.length-1]);
+		}
 		return deck;
 	}
 	this.load = function(cardOptions){
@@ -236,8 +378,42 @@ function Deck(){
 			var card = new Card(this);
 			this.cardStack.push(card);
 			card.init(cardOptions[i]);
+			card.createElement();
 		}
-		debugger;
+		
+	}
+	this.showCard = function(cardToShow){
+		this.domElement.append(cardToShow.domElement);
+	}
+	this.getTopCard = function(){
+		var cardToGet = this.cardStack.pop();
+		this.showCard(this.cardStack[this.cardStack.length-1]);
+		return cardToGet;
+	}
+	this.dealCard = function(receivingDeck,card){
+		if(card === undefined){
+			card = this.getTopCard();
+		}
+		this.animateDeal(receivingDeck,card);
+		if(card !== undefined){
+			receivingDeck.receiveCard(this, card);
+		} else {
+			console.warn('no more cards available');
+		}
+	}
+	this.animateDeal = function(dealingDeck, card){
+		card.moveCard(dealingDeck);
+	}
+	this.receiveCard = function(dealingDeck, card){
+
+		this.cardStack.push(card);
+		if(this.revealedByDefault){
+			card.setVisibilityState('show');
+		}
+		if(this.draggable){
+			card.makeDraggable();
+		}
+		card.parent = this;
 	}
 	
 }
