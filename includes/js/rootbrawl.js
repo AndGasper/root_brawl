@@ -190,7 +190,7 @@ function Player(){
 				debugger
 				var index = references.draggable.attr('index');
 				var card = this.cardHolders.hand.cardStack[index];
-				card.domElement.css('transform','rotateZ(45deg)');
+				card.becomeActive();
 				console.log(this);
 			},
 			accept: '.rootBrawlCard'
@@ -233,6 +233,7 @@ function Card(parentObject){
 	});
 	this.becomeActive = function(){
 		console.log('ROAAAAAARR ahem... errr... I\'m alive');
+		this.domElement.css('transform','rotateZ(45deg)');
 	}
 	this.makeDraggable = function(){
 		var _this = this;
