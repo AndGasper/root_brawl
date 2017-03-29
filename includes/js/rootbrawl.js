@@ -138,12 +138,14 @@ function Player(){
 		this.cardHolders.deck.load(this.cardLibrary);
 		var deckDomElement = this.cardHolders.deck.createElement();
 		this.playerAreas.deck.append(deckDomElement);
+		this.cardHolders.deck.revealedByDefault = false;
 	}
 	this.createHand = function(){
 		this.cardHolders.hand = new Deck('player hand');
 		var handDeckDomElement = this.cardHolders.hand.createElement();
 		this.playerAreas.hand.append(handDeckDomElement);
 		this.cardHolders.hand.draggable = true;
+		this.cardHolders.hand.revealedByDefault = false;
 	}
 	this.createCards = function(destination){
 		var card = new Card(this);
@@ -172,6 +174,10 @@ function Player(){
 				_this.domElement = container;
 				_this.getDomReferences();
 				creationCallback(_this.domElement);
+				//TODO: this is a temporary button for testing
+				$("#dealCards").click(function(){
+					_this.cardHolders.deck.dealCard(_this.cardHolders.hand)
+				});
 			}
 		});
 		//this code 2
@@ -194,6 +200,8 @@ function Card(parentObject){
 	this.handleDefend = null;
 	this.handleCreate = null;
 	this.handleDeath = null;
+	this.domFront = null;
+	this.domBack = null;
 	this.init = function(options){
 		this.attackValue = options.attack;
 		this.defenseValue = options.defense;
@@ -240,17 +248,24 @@ function Card(parentObject){
 		})
 
 	}
+	this.setVisibilityState = function(newState){
+		if(newState==='show'){
+			this.domBack.hide();
+		} else {
+			this.domBack.show();
+		}
+	}
 	this.createElement = function(){
 		this.domElement = $("<div>",{
 			class: 'rootBrawlCard',
 		});
-		var front = $("<div>",{
+		this.domFront = $("<div>",{
 			class: 'front'
 		}).css('background-image','url('+this.image+')');
-		var back = $("<div>",{
+		this.domBack = $("<div>",{
 			class: 'back'
 		}).css('background-image','url('+this.backfaceImageValue+')');
-		this.domElement.append(front,back);
+		this.domElement.append(this.domFront,this.domBack);
 		return this.domElement;
 	}
 	this.create = function(){
@@ -272,7 +287,22 @@ function Deck(name){
 	this.cardStack = [];
 	this.domElement = null;
 	this.draggableValue = false;
+	this.revealedByDefaultValue = true;
 	Object.defineProperties(this,{
+		revealedByDefault : {
+			get: function(){
+				return this.revealedByDefaultValue;
+			},
+			set: function(newValue){
+				this.revealedByDefaultValue = newValue;
+				if(this.revealedByDefaultValue){
+					this.revealAllCards();
+				} else {
+					this.hideAllCards();
+				}
+				console.log('update the cards now');
+			}
+		},
 		draggable: {
 			get: function(){
 				return this.draggableValue;
@@ -285,6 +315,17 @@ function Deck(name){
 			}
 		}
 	});
+	this.revealAllCards = function(){
+		this.setCardState('show');
+	}
+	this.hideAllCards = function(){
+		this.setCardState('hide');
+	}
+	this.setCardState = function(state){
+		this.cardStack.map((card)=>{
+			card.setVisibilityState(state);
+		});
+	}
 	this.instantiateDrag = function(){
 		console.log('here',this);
 		for(var i=0; i<this.cardStack.length; i++){
@@ -333,7 +374,11 @@ function Deck(name){
 		card.moveCard(dealingDeck);
 	}
 	this.receiveCard = function(dealingDeck, card){
+
 		this.cardStack.push(card);
+		if(this.revealedByDefault){
+			card.setVisibilityState('show');
+		}
 	}
 	
 }
