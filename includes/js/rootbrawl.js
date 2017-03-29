@@ -145,7 +145,7 @@ function Player(){
 		var handDeckDomElement = this.cardHolders.hand.createElement();
 		this.playerAreas.hand.append(handDeckDomElement);
 		this.cardHolders.hand.draggable = true;
-		this.cardHolders.hand.revealedByDefault = false;
+		this.cardHolders.hand.revealedByDefault = true;
 	}
 	this.createCards = function(destination){
 		var card = new Card(this);
@@ -175,13 +175,26 @@ function Player(){
 				_this.getDomReferences();
 				creationCallback(_this.domElement);
 				//TODO: this is a temporary button for testing
-				$("#dealCards").click(function(){
-					_this.cardHolders.deck.dealCard(_this.cardHolders.hand)
-				});
+				_this.prepInterface();
 			}
 		});
 		//this code 2
 
+	}
+	this.prepInterface = function(){
+		$("#dealCards").click(()=>{
+			this.cardHolders.deck.dealCard(this.cardHolders.hand);
+		});
+		this.playerAreas.active.droppable({
+			drop: (event, references)=>{
+				debugger
+				var index = references.draggable.attr('index');
+				var card = this.cardHolders.hand.cardStack[index];
+				card.domElement.css('transform','rotateZ(45deg)');
+				console.log(this);
+			},
+			accept: '.rootBrawlCard'
+		})
 	}
 }
 
@@ -202,6 +215,7 @@ function Card(parentObject){
 	this.handleDeath = null;
 	this.domFront = null;
 	this.domBack = null;
+	this.parent = parentObject;
 	this.init = function(options){
 		this.attackValue = options.attack;
 		this.defenseValue = options.defense;
@@ -217,8 +231,24 @@ function Card(parentObject){
 	Object.defineProperties(this,{
 		
 	});
+	this.becomeActive = function(){
+		console.log('ROAAAAAARR ahem... errr... I\'m alive');
+	}
 	this.makeDraggable = function(){
-		this.domElement.draggable();
+		var _this = this;
+		this.domElement.draggable({
+			revert: 'invalid',
+			start: (p1, reference)=>{
+				
+				//p2.position.theObject = _this;
+				reference.helper.attr('index',this.parent.cardStack.indexOf(this));
+
+				//debugger;
+			},
+			stop: (p1, reference)=>{
+				console.log(this.parent);
+			}
+		});
 	}
 	this.moveCard = function(destinationDeck){
 		var offset = this.domElement.offset();
@@ -379,6 +409,10 @@ function Deck(name){
 		if(this.revealedByDefault){
 			card.setVisibilityState('show');
 		}
+		if(this.draggable){
+			card.makeDraggable();
+		}
+		card.parent = this;
 	}
 	
 }
