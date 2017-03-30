@@ -184,10 +184,10 @@ function Player(){
 	this.prepInterface = function(){
 		$("#dealCards").click(()=>{
 			this.cardHolders.deck.dealCard(this.cardHolders.hand);
-		});
+		}),
 		this.playerAreas.active.droppable({
 			drop: (event, references)=>{
-				debugger
+				debugger;
 				var index = references.draggable.attr('index');
 				var card = this.cardHolders.hand.cardStack[index];
 				card.becomeActive();
@@ -299,6 +299,7 @@ function Card(parentObject){
 		this.domElement.append(this.domFront,this.domBack);
 		return this.domElement;
 	}
+	// this.create/die/attack/defend are intended for animation functions
 	this.create = function(){
 
 	}
