@@ -299,6 +299,7 @@ function Card(parentObject){
 		this.domElement.append(this.domFront,this.domBack);
 		return this.domElement;
 	}
+	this.
 	// this.create/die/attack/defend are intended for animation functions
 	this.create = function(){
 
