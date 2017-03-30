@@ -187,11 +187,9 @@ function Player(){
 		});
 		this.playerAreas.active.droppable({
 			drop: (event, references)=>{
-				debugger
 				var index = references.draggable.attr('index');
-				var card = this.cardHolders.hand.cardStack[index];
+				var card = references.helper[0].card;
 				card.becomeActive();
-				console.log(this);
 			},
 			accept: '.rootBrawlCard'
 		})
@@ -240,7 +238,8 @@ function Card(parentObject){
 		this.domElement.draggable({
 			revert: 'invalid',
 			start: (p1, reference)=>{
-				
+				console.log(reference);
+				reference.helper[0].originalObject = _this;
 				//p2.position.theObject = _this;
 				reference.helper.attr('index',this.parent.cardStack.indexOf(this));
 
